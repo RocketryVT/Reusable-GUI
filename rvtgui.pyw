@@ -1,3 +1,5 @@
+#! /usr/bin/env python3
+
 from tkinter import *
 from tkinter.ttk import *
 from tkinter.font import Font
@@ -8,6 +10,7 @@ import os
 import socket
 import re
 import copy
+import sys
 
 
 class CollapsiblePane(Frame):
@@ -136,10 +139,11 @@ class MainWindow(Tk):
 
         Tk.__init__(self)
         self.style = Style()
-        self.style.theme_use("xpnative")
+        if sys.platform != "linux":
+            self.style.theme_use("xpnative")
+            self.wm_iconbitmap("logo_nowords_cZC_icon.ico")
         self.style.configure("console", foreground="black", background="white")
         self.title("Rocketry@VT Launch Control Operator Interface v2020-10-09a")
-        self.wm_iconbitmap("logo_nowords_cZC_icon.ico")
         self.protocol("WM_DELETE_WINDOW", self.destroy)
         make_focus(self)
         self.update_idletasks()
@@ -283,7 +287,8 @@ class MainWindow(Tk):
         bottom_frame.pack(side=BOTTOM, fill=BOTH)
 
         # WINDOW CONFIGURATION ==============================================
-        self.state('zoomed')
+        if sys.platform != "linux":
+            self.state('zoomed')
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(0, weight=1)
         self.begin_loop()
@@ -338,10 +343,10 @@ class MainWindow(Tk):
             if not self.logfile:
                 filename = "logs/LOG-" + now.strftime(
                     "%Y-%m-%d-%I-%M-%S-%p") + ".txt"
-                print(f"Opening log: {filename}");
+                print("Opening log: {}".format(filename));
                 self.logfile = open(filename, 'wb')
                 nowf = now.strftime("%A, %d %B %Y %I:%M:%S %p")
-                self.logfile.write(f"Log beginning {nowf}\n".encode())
+                self.logfile.write("Log beginning {}\n".format(nowf).encode())
 
             message = message.decode('utf-8', 'ignore')
             self.logfile.write(message.encode())
@@ -381,7 +386,7 @@ class MainWindow(Tk):
         self.textOutput.config(bg="#0e1c24")
         self.set_status("Disconnected.")
         if reason:
-            self.set_status(f"Disconnected ({reason}).")
+            self.set_status("Disconnected ({}).".format(reason))
         self.socket = None
         self.connectButton.config(text="Connect")
 
@@ -505,7 +510,10 @@ class MainWindow(Tk):
 
 if __name__ == "__main__":
 
-    CONSOLE_FONT = ("Consolas", 11)
+    if sys.platform == "linux":
+        CONSOLE_FONT = ("Ubuntu Mono", 11)
+    else:
+        CONSOLE_FONT = ("Consolas", 11)
 
     default_nodes = [
         "/top/tcp_server",
